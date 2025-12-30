@@ -10,12 +10,21 @@ fi
 
 sudo -v
 
+. /etc/os-release
+: "${VERSION_ID:?}"
+
 say "Enable Terra repository (for ly)"
 if ! rpm -q terra-release >/dev/null 2>&1; then
-  sudo dnf -y install https://terra.fyralabs.com/terra-release.rpm
+  # Official bootstrap: install terra-release from Terra repo path
+  sudo dnf -y install --nogpgcheck \
+    --repofrompath "terra,https://repos.fyralabs.com/terra${VERSION_ID}" \
+    terra-release
 else
   echo "Terra repo already installed"
 fi
+
+say "Refresh metadata"
+sudo dnf -y makecache
 
 say "Install ly display manager"
 sudo dnf -y install ly
