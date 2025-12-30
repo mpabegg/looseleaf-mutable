@@ -11,8 +11,11 @@ fi
 sudo -v
 
 say "Enable Terra repository (for ly)"
-# Installs Terra repo definition; safe if already installed
-sudo dnf -y install terra-release
+if ! rpm -q terra-release >/dev/null 2>&1; then
+  sudo dnf -y install https://terra.fyralabs.com/terra-release.rpm
+else
+  echo "Terra repo already installed"
+fi
 
 say "Install ly display manager"
 sudo dnf -y install ly
