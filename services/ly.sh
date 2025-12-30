@@ -10,23 +10,17 @@ fi
 
 sudo -v
 
-. /etc/os-release
-: "${VERSION_ID:?}"
-
-say "Enable Terra repository (for ly)"
-if ! rpm -q terra-release >/dev/null 2>&1; then
-  # Official bootstrap: install terra-release from Terra repo path
-  sudo dnf -y install --nogpgcheck \
-    --repofrompath "terra,https://repos.fyralabs.com/terra${VERSION_ID}" \
-    terra-release
-else
-  echo "Terra repo already installed"
+say "Remove python3-ly if installed (NOT the display manager)"
+if rpm -q python3-ly >/dev/null 2>&1; then
+  sudo dnf -y remove python3-ly
 fi
 
-say "Refresh metadata"
-sudo dnf -y makecache
+say "Enable COPR for Ly display manager"
+# Community-packaged Ly DM for Fedora
+sudo dnf -y install dnf-plugins-core
+sudo dnf -y copr enable adev/ly
 
-say "Install ly display manager"
+say "Install Ly display manager"
 sudo dnf -y install ly
 
 say "Disable other display managers if present"
@@ -34,8 +28,17 @@ for dm in gdm sddm lightdm; do
   sudo systemctl disable --now "${dm}.service" 2>/dev/null || true
 done
 
-say "Enable ly"
-sudo systemctl enable ly.service
+say "Enable Ly service"
+if systemctl list-unit-files | grep -q '^ly\.service'; then
+  sudo systemctl enable ly.service
+elif systemctl list-unit-files | grep -q '^ly@\.service'; then
+  # Some builds use a template unit
+  sudo systemctl enable ly@tty2.service
+else
+  echo "ERROR: Ly installed but no systemd unit (ly.service or ly@.service) was found."
+  echo "Check: rpm -ql ly | grep -E \"systemd|ly\\.service|ly@\""
+  exit 1
+fi
 
 say "Ly installed and enabled"
 echo "Reboot required to start using Ly: sudo reboot"
