@@ -14,7 +14,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 say "Install base packages (if packages/base.txt exists)"
 if [[ -f "${ROOT}/packages/base.txt" ]]; then
-  sudo dnf -y install $(grep -Ev '^\s*#|^\s*$' "${ROOT}/packages/base.txt")
+  mapfile -t PKGS < <(grep -Ev '^\s*#|^\s*$' "${ROOT}/packages/base.txt" || true)
+  if (( ${#PKGS[@]} > 0 )); then
+    sudo dnf -y install "${PKGS[@]}"
+  else
+    echo "packages/base.txt is empty; skipping base package install."
+  fi
 else
   echo "No packages/base.txt found; skipping base package install."
 fi
