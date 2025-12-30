@@ -19,7 +19,7 @@ sudo dnf -y install \
   libxcb-devel \
   zig \
   xorg-x11-xauth \
-  xorg-x11-server \
+  xorg-x11-server-Xorg \
   brightnessctl
 
 say "Build + install Ly from source (systemd)"
