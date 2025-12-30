@@ -72,7 +72,7 @@ sudo dnf -y install \
   firewalld \
   btrfs-progs \
   snapper \
-  snapper-plugins \
+  python3-dnf-plugin-snapper \
   timeshift \
   policycoreutils-python-utils \
   pipewire \
