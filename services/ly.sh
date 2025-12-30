@@ -15,30 +15,32 @@ if rpm -q python3-ly >/dev/null 2>&1; then
   sudo dnf -y remove python3-ly
 fi
 
-say "Enable COPR for Ly display manager"
-# Community-packaged Ly DM for Fedora
+say "Enable COPR for Ly display manager (Fedora 43 compatible)"
 sudo dnf -y install dnf-plugins-core
-sudo dnf -y copr enable adev/ly
+sudo dnf -y copr enable fnux/ly
 
 say "Install Ly display manager"
 sudo dnf -y install ly
+
+say "Ensure graphical target is default"
+sudo systemctl set-default graphical.target
 
 say "Disable other display managers if present"
 for dm in gdm sddm lightdm; do
   sudo systemctl disable --now "${dm}.service" 2>/dev/null || true
 done
 
-say "Enable Ly service"
-if systemctl list-unit-files | grep -q '^ly\.service'; then
-  sudo systemctl enable ly.service
-elif systemctl list-unit-files | grep -q '^ly@\.service'; then
-  # Some builds use a template unit
-  sudo systemctl enable ly@tty2.service
+say "Enable Ly service (try common unit names)"
+if systemctl list-unit-files --no-pager | grep -q '^ly\.service'; then
+  sudo systemctl enable --now ly.service
+elif systemctl list-unit-files --no-pager | grep -q '^ly@\.service'; then
+  sudo systemctl enable --now ly@tty2.service
 else
-  echo "ERROR: Ly installed but no systemd unit (ly.service or ly@.service) was found."
-  echo "Check: rpm -ql ly | grep -E \"systemd|ly\\.service|ly@\""
+  echo "ERROR: Ly installed but no systemd unit found (ly.service or ly@.service)."
+  echo "Debug:"
+  echo "  rpm -ql ly | grep -Ei 'systemd|ly\\.service|ly@'"
   exit 1
 fi
 
 say "Ly installed and enabled"
-echo "Reboot required to start using Ly: sudo reboot"
+echo "Reboot required: sudo reboot"
